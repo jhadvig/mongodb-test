@@ -1,0 +1,36 @@
+FROM centos:centos7
+
+# MongoDB image for OpenShift.
+#
+# Volumes:
+#  * /data/db - Datastore for MongoDB
+# Environment:
+#  * $MYSQL_USER - Database user name
+#  * $MYSQL_PASSWORD - User's password
+#  * $MYSQL_DATABASE - Name of the database to create
+
+# Image metadata
+ENV MONGODB_VERSION         2.4  
+ENV IMAGE_DESCRIPTION       MongoDB 2.4
+ENV IMAGE_TAGS              mongodb,mongodb24
+ENV IMAGE_EXPOSE_SERVICES   27017:mongodb
+
+MAINTAINER  Jakub Hadvig <jhadvig@redhat.com>
+EXPOSE 27017
+
+RUN groupadd -g 184 -o -r mongodb && \
+    useradd -M -N -g mongodb -o -r -d /data/db -s /sbin/nologin -c "MongoDB Database Server" -u 184 mongodb
+
+RUN yum install -y yum-utils && \
+    yum-config-manager --enable rhel-server-rhscl-7-rpms && \
+    yum-config-manager --enable rhel-7-server-optional-rpms && \
+    yum install -y --setopt=tsflags=nodocs mongodb24 && \
+    yum clean all
+
+COPY mongodb /opt/openshift/
+ENV PATH /opt/openshift/bin:$PATH
+WORKDIR /opt/openshift
+
+VOLUME ["/data/db"]
+
+ENTRYPOINT ["run.sh"]
