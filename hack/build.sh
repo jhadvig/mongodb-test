@@ -1,10 +1,10 @@
 #!/bin/bash -e
 # $1 - Specifies distribution - RHEL7/CentOS7
-# $2 - Specifies MySQL version - 5.5
+# $2 - Specifies MongoDB version - 2.4
 # TEST_MODE - If set, build a candidate image and test it
 
-# Array of all versions of MySQL
-declare -a VERSIONS=(5.5)
+# Array of all versions of MongoDB
+declare -a VERSIONS=(2.4)
 
 OS=$1
 VERSION=$2
@@ -28,12 +28,12 @@ if [ -z ${VERSION} ]; then
   # Build all versions
   dirs=${VERSIONS}
 else
-  # Build only specified version on MySQL
+  # Build only specified version on MongoDB
   dirs=${VERSION}
 fi
 
 for dir in ${dirs}; do
-  IMAGE_NAME=openshift/mysql-${dir//./}-${OS}
+  IMAGE_NAME=openshift/mongo-${dir//./}-${OS}
   if [ -v TEST_MODE ]; then
 	  IMAGE_NAME="${IMAGE_NAME}-candidate"
   fi
