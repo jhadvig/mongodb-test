@@ -5,9 +5,9 @@ FROM centos:centos7
 # Volumes:
 #  * /data/db - Datastore for MongoDB
 # Environment:
-#  * $MYSQL_USER - Database user name
-#  * $MYSQL_PASSWORD - User's password
-#  * $MYSQL_DATABASE - Name of the database to create
+#  * $MONGODB_USER - Database user name
+#  * $MONGODB_PASSWORD - User's password
+#  * $MONGODB_DATABASE - Name of the database to create
 
 # Image metadata
 ENV MONGODB_VERSION         2.4  
@@ -23,11 +23,12 @@ RUN groupadd -g 184 -o -r mongodb && \
 
 RUN yum install -y epel-release && \
     rpmkeys --import file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 && \
-    yum -y --setopt=tsflags=nodocs install https://www.softwarecollections.org/en/scls/rhscl/mongodb24/epel-7-x86_64/download/rhscl-mongodb24-epel-7-x86_64.noarch.rpm && \
-    yum -y --setopt=tsflags=nodocs install mongodb24 && \
+    yum -y --setopt=tsflags=nodocs install \
+    https://www.softwarecollections.org/en/scls/rhscl/mongodb24/epel-7-x86_64/download/rhscl-mongodb24-epel-7-x86_64.noarch.rpm \
+    mongodb24 && \
     yum clean all
 
-COPY mongodb /opt/openshift/
+COPY contrib /opt/openshift/
 ENV PATH /opt/openshift/bin:$PATH
 WORKDIR /opt/openshift
 

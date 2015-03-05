@@ -5,9 +5,9 @@ FROM centos:centos7
 # Volumes:
 #  * /data/db - Datastore for MongoDB
 # Environment:
-#  * $MYSQL_USER - Database user name
-#  * $MYSQL_PASSWORD - User's password
-#  * $MYSQL_DATABASE - Name of the database to create
+#  * $MONGODB_USER - Database user name
+#  * $MONGODB_PASSWORD - User's password
+#  * $MONGODB_DATABASE - Name of the database to create
 
 # Image metadata
 ENV MONGODB_VERSION         2.4  
@@ -24,7 +24,7 @@ RUN groupadd -g 184 -o -r mongodb && \
 RUN yum install -y yum-utils && \
     yum-config-manager --enable rhel-server-rhscl-7-rpms && \
     yum-config-manager --enable rhel-7-server-optional-rpms && \
-    yum install -y --setopt=tsflags=nodocs v8314 mongodb24 && \
+    yum install -y --setopt=tsflags=nodocs mongodb24 && \
     yum clean all
 
 COPY mongodb /opt/openshift/
