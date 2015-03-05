@@ -21,11 +21,10 @@ EXPOSE 27017
 RUN groupadd -g 184 -o -r mongodb && \
     useradd -M -N -g mongodb -o -r -d /data/db -s /sbin/nologin -c "MongoDB Database Server" -u 184 mongodb
 
-RUN rpmkeys --import file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 && \
-    yum -y --setopt=tsflags=nodocs install \
-    https://www.softwarecollections.org/en/scls/rhscl/v8314/epel-7-x86_64/download/rhscl-v8314-epel-7-x86_64.noarch.rpm \
-    https://www.softwarecollections.org/en/scls/rhscl/mongodb24/epel-7-x86_64/download/rhscl-mongodb24-epel-7-x86_64.noarch.rpm && \
-    yum -y --setopt=tsflags=nodocs install v8314 mongodb24 && \
+RUN yum install -y epel-release && \
+    rpmkeys --import file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 && \
+    yum -y --setopt=tsflags=nodocs install https://www.softwarecollections.org/en/scls/rhscl/mongodb24/epel-7-x86_64/download/rhscl-mongodb24-epel-7-x86_64.noarch.rpm && \
+    yum -y --setopt=tsflags=nodocs install mongodb24 && \
     yum clean all
 
 COPY mongodb /opt/openshift/
