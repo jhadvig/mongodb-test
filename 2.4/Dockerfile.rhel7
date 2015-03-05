@@ -1,4 +1,4 @@
-FROM centos:centos7
+FROM rhel7
 
 # MongoDB image for OpenShift.
 #
@@ -22,10 +22,10 @@ EXPOSE 28017
 RUN yum install -y yum-utils && \
     yum-config-manager --enable rhel-server-rhscl-7-rpms && \
     yum-config-manager --enable rhel-7-server-optional-rpms && \
-    yum install -y --setopt=tsflags=nodocs v8314 mongodb24-mongodb mongodb24&& \
+    yum install -y --setopt=tsflags=nodocs v8314 mongodb24-mongodb mongodb24 && \
     yum clean all
 
-COPY mongodb /opt/openshift/
+COPY contrib /opt/openshift/
 ENV PATH /opt/openshift/bin:$PATH
 WORKDIR /opt/openshift
 

@@ -1,55 +1,51 @@
-#!/bin/bash -e
+#!/bin/bash
 
-# function usage {
-# 	echo "You must specify following environment variables:"
-# 	echo "  \$MONGODB_USER"
-# 	echo "  \$MMONGODB_PASSWORD"
-# 	#echo "  \$MONGODB_DATABASE"
-# 	exit 1
-# }
+# SCL in CentOS/RHEL 7 doesn't support --exec, we need to do it ourselves
+source scl_source enable mongodb24
+set -e
 
-# test -z "$MONGODB_USER" && usage
-# test -z "$MONGODB_PASSWORD" && usage
-# #test -z "$MONGODB_DATABASE" && usage
+function usage {
+	echo "You must specify following environment variables:"
+	echo "  \$MONGODB_USER"
+	echo "  \$MONGODB_PASSWORD"
+	#echo "  \$MONGODB_DB"
+	echo "  \$MONGODB_ADMIN_PASSWORD"
+	exit 1
+}
 
-function set_mongodb_password {
+function create_mongodb_users {
 	mongod --dbpath /var/lib/mongodb/ &
-
-	#PASS=${MONGODB_PASS:-$(pwgen -s 12 1)}
-	PASS="random"
-	_word=$( [ ${MONGODB_PASS} ] && echo "preset" || echo "random" )
 
 	RET=1
 	while [[ RET -ne 0 ]]; do
 	    echo "=> Waiting for confirmation of MongoDB service startup"
-	    sleep 5
+	    sleep 3
 	    mongo admin --eval "help" >/dev/null 2>&1
 	    RET=$?
 	done
 
-	echo "=> Creating an admin user with a ${_word} password in MongoDB"
-	mongo admin --eval "db.addUser({user: 'admin', pwd: '$PASS', roles: [ 'userAdminAnyDatabase', 'dbAdminAnyDatabase' ]});"
+	# Make sure env variables don't propagate to mongod process.
+	mongo_user="$MONGODB_USER" ; unset MONGODB_USER
+	mongo_pass="$MONGODB_PASSWORD" ; unset MONGODB_PASSWORD
+	#mongo_db=${MONGODB_DB:-"production"} ; unset MONGODB_DB
+
+
+	if [ "$MONGODB_ADMIN_PASSWORD" ]; then
+		echo "=> Creating an admin user with a ${_word} password in MongoDB"
+		mongo admin --eval "db.addUser({user: 'admin', pwd: '$MONGODB_ADMIN_PASSWORD', roles: [ 'userAdminAnyDatabase', 'dbAdminAnyDatabase' ]});"
+		unset MONGODB_ADMIN_PASSWORD
+	fi
+
+	mongo admin --eval "db.addUser({user: '${mongo_user}', pwd: '${mongo_pass}', roles: [ 'readWrite', 'dbAdmin' ]});"
 	mongo admin --eval "db.shutdownServer();"
-
-	echo "=> Done!"
-	touch /.mongodb_password_set
-
-	echo "========================================================================"
-	echo "You can now connect to this MongoDB server using:"
-	echo ""
-	echo "    mongo admin -u admin -p $PASS --host <host> --port <port>"
-	echo ""
-	echo "Please remember to change the above password as soon as possible"
-	echo "========================================================================"
 }
 
-# SCL in CentOS/RHEL 7 doesn't support --exec, we need to do it ourselves
-source scl_source enable mongodb24
+test -z "$MONGODB_USER" && usage
+test -z "$MONGODB_PASSWORD" && usage
 
-if [ ! -f /.mongodb_password_set ]; then
-	set_mongodb_password
+
+if [ "$MONGODB_USER" -o "$MONGODB_PASSWORD" -o "$MONGODB_ADMIN_PASSWORD" ]; then
+	create_mongodb_users
 fi
 
-export mongodb='mongod --auth --dbpath /var/lib/mongodb/ --rest'
-
-exec mongod --auth --dbpath /var/lib/mongodb/ --rest
+exec mongod --auth -f /opt/openshift/etc/mongodb.conf #--rest
