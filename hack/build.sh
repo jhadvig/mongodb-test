@@ -33,7 +33,7 @@ else
 fi
 
 for dir in ${dirs}; do
-  IMAGE_NAME=openshift/mongo-${dir//./}-${OS}
+  IMAGE_NAME=openshift/mongodb-${dir//./}-${OS}
   if [ -v TEST_MODE ]; then
 	  IMAGE_NAME="${IMAGE_NAME}-candidate"
   fi
