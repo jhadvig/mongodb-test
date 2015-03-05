@@ -13,7 +13,7 @@
 # #test -z "$MONGODB_DATABASE" && usage
 
 function set_mongodb_password {
-	mongod --smallfiles --nojournal &
+	mongod --dbpath /var/lib/mongodb/ &
 
 	#PASS=${MONGODB_PASS:-$(pwgen -s 12 1)}
 	PASS="random"
@@ -39,24 +39,17 @@ function set_mongodb_password {
 	echo ""
 	echo "    mongo admin -u admin -p $PASS --host <host> --port <port>"
 	echo ""
-	echo "Please remember to change the above password as soon as possible!"
+	echo "Please remember to change the above password as soon as possible"
 	echo "========================================================================"
 }
+
+# SCL in CentOS/RHEL 7 doesn't support --exec, we need to do it ourselves
+source scl_source enable mongodb24
 
 if [ ! -f /.mongodb_password_set ]; then
 	set_mongodb_password
 fi
 
-export mongodb='mongod --auth --dbpath /var/lib/mongodb/ --httpinterface --rest'
+export mongodb='mongod --auth --dbpath /var/lib/mongodb/ --rest'
 
-# SCL in CentOS/RHEL 7 doesn't support --exec, we need to do it ourselves
-source scl_source enable mongodb24
-
-# DB dir - /var/lib/mongodb/
-if [ ! -f /var/lib/mongodb/mongod.lock ]; then
-    exec $mongodb
-else
-	export mongodb=$mongodb' --dbpath /data/db' 
-    rm /data/db/mongod.lock
-    mongod --dbpath /var/lib/mongodb/ --repair && exec $mongodb
-fi
+exec mongod --auth --dbpath /var/lib/mongodb/ --rest
