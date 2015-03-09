@@ -14,7 +14,7 @@ function usage {
 }
 
 function create_mongodb_users {
-	mongod --dbpath /var/lib/mongodb/ &
+	mongod -f /opt/openshift/etc/mongodb.conf &
 
 	RET=1
 	while [[ RET -ne 0 ]]; do
@@ -31,7 +31,7 @@ function create_mongodb_users {
 
 
 	if [ "$MONGODB_ADMIN_PASSWORD" ]; then
-		echo "=> Creating an admin user with a ${_word} password in MongoDB"
+		echo "=> Creating an admin user with a ${MONGODB_ADMIN_PASSWORD} password in MongoDB"
 		mongo admin --eval "db.addUser({user: 'admin', pwd: '$MONGODB_ADMIN_PASSWORD', roles: [ 'userAdminAnyDatabase', 'dbAdminAnyDatabase' ]});"
 		unset MONGODB_ADMIN_PASSWORD
 	fi
@@ -48,4 +48,5 @@ if [ "$MONGODB_USER" -o "$MONGODB_PASSWORD" -o "$MONGODB_ADMIN_PASSWORD" ]; then
 	create_mongodb_users
 fi
 
-exec mongod --auth -f /opt/openshift/etc/mongodb.conf #--rest
+#exec mongod --auth -f /opt/openshift/etc/mongodb.conf #--rest
+exec mongod -f /opt/openshift/etc/mongodb.conf 
