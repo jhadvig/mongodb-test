@@ -50,7 +50,7 @@ fi
 
 if [ -f /var/lib/mongodb/mongod.lock ]; then
     rm /var/lib/mongodb/mongod.lock
-    mongod --dbpath /data/db --repair 
+    mongod -f /opt/openshift/etc/mongodb.conf --repair 
 fi
 
 exec mongod -f /opt/openshift/etc/mongodb.conf
