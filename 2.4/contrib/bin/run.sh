@@ -48,5 +48,9 @@ if [ "$MONGODB_USER" -o "$MONGODB_PASSWORD" -o "$MONGODB_ADMIN_PASSWORD" ]; then
 	create_mongodb_users
 fi
 
-#exec mongod --auth -f /opt/openshift/etc/mongodb.conf #--rest
-exec mongod -f /opt/openshift/etc/mongodb.conf 
+if [ -f /var/lib/mongodb/mongod.lock ]; then
+    rm /var/lib/mongodb/mongod.lock
+    mongod --dbpath /data/db --repair 
+fi
+
+exec mongod -f /opt/openshift/etc/mongodb.conf
