@@ -16,18 +16,18 @@ function usage {
 function create_mongodb_users {
 	mongod -f /opt/openshift/etc/mongodb.conf &
 
-	# RET=1
-	# while [[ RET -ne 0 ]]; do
-	#     echo "=> Waiting for confirmation of MongoDB service startup"
-	#     sleep 3
-	#     mongo admin --eval "help" >/dev/null 2>&1
-	#     RET=$?
-	# done
+	RET=1
+	while [[ RET -ne 0 ]]; do
+	    echo "=> Waiting for confirmation of MongoDB service startup"
+	    sleep 3
+	    mongo admin --eval "help" >/dev/null 2>&1
+	    RET=$?
+	done
 
 	# Make sure env variables don't propagate to mongod process.
 	mongo_user="$MONGODB_USER" ; unset MONGODB_USER
 	mongo_pass="$MONGODB_PASSWORD" ; unset MONGODB_PASSWORD
-	mongo_db=${MONGODB_DB:-"production"} ; unset MONGODB_DB
+	mongo_db=${MONGODB_DATABASE:-"production"} ; unset MONGODB_DATABASE
 
 
 	if [ "$MONGODB_ADMIN_PASSWORD" ]; then
@@ -37,7 +37,7 @@ function create_mongodb_users {
 	fi
 
 	mongo $mongo_db --eval "db.addUser({user: '${mongo_user}', pwd: '${mongo_pass}', roles: [ 'readWrite', 'dbAdmin' ]});"
-	mongo --eval "db.shutdownServer();"
+	mongo admin --eval "db.shutdownServer();"
 
 	sleep 3
 }
