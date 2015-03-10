@@ -16,18 +16,18 @@ function usage {
 function create_mongodb_users {
 	mongod -f /opt/openshift/etc/mongodb.conf &
 
-	RET=1
-	while [[ RET -ne 0 ]]; do
-	    echo "=> Waiting for confirmation of MongoDB service startup"
-	    sleep 3
-	    mongo admin --eval "help" >/dev/null 2>&1
-	    RET=$?
-	done
+	# RET=1
+	# while [[ RET -ne 0 ]]; do
+	#     echo "=> Waiting for confirmation of MongoDB service startup"
+	#     sleep 3
+	#     mongo admin --eval "help" >/dev/null 2>&1
+	#     RET=$?
+	# done
 
 	# Make sure env variables don't propagate to mongod process.
 	mongo_user="$MONGODB_USER" ; unset MONGODB_USER
 	mongo_pass="$MONGODB_PASSWORD" ; unset MONGODB_PASSWORD
-	#mongo_db=${MONGODB_DB:-"production"} ; unset MONGODB_DB
+	mongo_db=${MONGODB_DB:-"production"} ; unset MONGODB_DB
 
 
 	if [ "$MONGODB_ADMIN_PASSWORD" ]; then
@@ -36,8 +36,10 @@ function create_mongodb_users {
 		unset MONGODB_ADMIN_PASSWORD
 	fi
 
-	mongo admin --eval "db.addUser({user: '${mongo_user}', pwd: '${mongo_pass}', roles: [ 'readWrite', 'dbAdmin' ]});"
-	mongo admin --eval "db.shutdownServer();"
+	mongo $mongo_db --eval "db.addUser({user: '${mongo_user}', pwd: '${mongo_pass}', roles: [ 'readWrite', 'dbAdmin' ]});"
+	mongo --eval "db.shutdownServer();"
+
+	sleep 3
 }
 
 test -z "$MONGODB_USER" && usage
@@ -48,9 +50,4 @@ if [ "$MONGODB_USER" -o "$MONGODB_PASSWORD" -o "$MONGODB_ADMIN_PASSWORD" ]; then
 	create_mongodb_users
 fi
 
-if [ -f /var/lib/mongodb/mongod.lock ]; then
-    rm /var/lib/mongodb/mongod.lock
-    mongod -f /opt/openshift/etc/mongodb.conf --repair 
-fi
-
-exec mongod -f /opt/openshift/etc/mongodb.conf
+exec mongod -f /opt/openshift/etc/mongodb.conf --auth
