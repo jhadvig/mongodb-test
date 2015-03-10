@@ -17,7 +17,6 @@ ENV IMAGE_EXPOSE_SERVICES   27017:mongodb
 
 MAINTAINER  Jakub Hadvig <jhadvig@redhat.com>
 EXPOSE 27017
-EXPOSE 28017
 
 RUN yum install -y yum-utils && \
     yum-config-manager --enable rhel-server-rhscl-7-rpms && \

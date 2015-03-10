@@ -14,88 +14,88 @@ IMAGE_NAME=${IMAGE_NAME-openshift/mongodb-24-centos7-candidate}
 CIDFILE_DIR=$(mktemp --suffix=mongodb_test_cidfiles -d)
 
 cleanup() {
-        for cidfile in $CIDFILE_DIR/* ; do
-                CONTAINER=$(cat $cidfile)
+    for cidfile in $CIDFILE_DIR/* ; do
+        CONTAINER=$(cat $cidfile)
 
-                echo "Stopping and removing container $CONTAINER..."
-                docker stop $CONTAINER
-                docker rm $CONTAINER
-                rm $cidfile
-                echo "Done."
-        done
-        rmdir $CIDFILE_DIR
+        echo "Stopping and removing container $CONTAINER..."
+        docker stop $CONTAINER
+        docker rm $CONTAINER
+        rm $cidfile
+        echo "Done."
+    done
+    rmdir $CIDFILE_DIR
 }
 trap cleanup EXIT
 
 get_cid () {
-        local id="$1" ; shift || return 1
-        echo $(cat "$CIDFILE_DIR/$id")
+    local id="$1" ; shift || return 1
+    echo $(cat "$CIDFILE_DIR/$id")
 }
 
 get_container_ip() {
-        local id="$1" ; shift
-        docker inspect --format='{{.NetworkSettings.IPAddress}}' $(get_cid "$id")
+    local id="$1" ; shift
+    docker inspect --format='{{.NetworkSettings.IPAddress}}' $(get_cid "$id")
 }
 
 mongo_cmd() {
-        docker run --rm --entrypoint=scl $IMAGE_NAME enable mongodb24 -- mongo test --host $CONTAINER_IP -u "$USER" -p "$PASS" --eval "${@}"
+    docker run --rm --entrypoint=scl $IMAGE_NAME enable mongodb24 -- mongo test --host $CONTAINER_IP -u "$USER" -p "$PASS" --eval "${@}"
 }
 
 test_connection() { 
-        local name=$1 ; shift
-        ip=$(get_container_ip $name)
-        echo "  Testing MongoDB connection to $ip..."
-        local max_attempts=20
-        local sleep_time=2
-        for i in $(seq $max_attempts); do
-                echo "    Trying to connect..."
-                set +e
-                mongo_cmd "db.getSiblingDB('test_database');" 
-                status=$? 
-                set -e
-                if [ $status -eq 0 ]; then
-                        echo "  Success!"
-                        return 0
-                fi
-                sleep $sleep_time
-        done
-        echo "  Giving up: Failed to connect. Logs:"
-        docker logs $(get_cid $name)
-        return 1
+    local name=$1 ; shift
+    ip=$(get_container_ip $name)
+    echo "  Testing MongoDB connection to $ip..."
+    local max_attempts=20
+    local sleep_time=2
+    for i in $(seq $max_attempts); do
+        echo "    Trying to connect..."
+        set +e
+        mongo_cmd "db.getSiblingDB('test_database');"
+        status=$?
+        set -e
+        if [ $status -eq 0 ]; then
+            echo "  Success!"
+            return 0
+        fi
+        sleep $sleep_time
+    done
+    echo "  Giving up: Failed to connect. Logs:"
+    docker logs $(get_cid $name)
+    return 1
 }
 
 test_mongo() {
-        echo "  Testing MongoDB"
-        mongo_cmd "db.testData.insert({ x : 0 });"
-        mongo_cmd "db.testData.insert({ y : 1 });"
-        mongo_cmd "db.testData.find().forEach(printjson);"
-        mongo_cmd "db.testData.count();"
-        mongo_cmd "db.testData.drop();"
-        mongo_cmd "db.dropDatabase();"
-        echo "  Success!"
+    echo "  Testing MongoDB"
+    mongo_cmd "db.testData.insert({ x : 0 });"
+    mongo_cmd "db.testData.insert({ y : 1 });"
+    mongo_cmd "db.testData.find().forEach(printjson);"
+    mongo_cmd "db.testData.count();"
+    mongo_cmd "db.testData.drop();"
+    mongo_cmd "db.dropDatabase();"
+    echo "  Success!"
 }
 
 create_container() {
-        local name=$1 ; shift
-        cidfile="$CIDFILE_DIR/$name"
-        # create container with a cidfile in a directory for cleanup
-        docker run --cidfile $cidfile -d "$@" $IMAGE_NAME
-        echo "Created container $(cat $cidfile)"
+    local name=$1 ; shift
+    cidfile="$CIDFILE_DIR/$name"
+    # create container with a cidfile in a directory for cleanup
+    docker run --cidfile $cidfile -d "$@" $IMAGE_NAME
+    echo "Created container $(cat $cidfile)"
 }
 
 run_tests() {
-        local name=$1 ; shift
-        envs="-e MONGODB_USER=$USER -e MONGODB_PASSWORD=$PASS -e MONGODB_DATABASE=$DB"
-        if [ -v ROOT_PASS ]; then
-                envs="$envs -e MONGODB_ROOT_PASSWORD=$ROOT_PASS"
-        fi
-        create_container $name $envs
-        CONTAINER_IP=$(get_container_ip $name)
-        test_connection $name
-        test_mongo $name
+    local name=$1 ; shift
+    envs="-e MONGODB_USER=$USER -e MONGODB_PASSWORD=$PASS -e MONGODB_DATABASE=$DB"
+    if [ -v ROOT_PASS ]; then
+        envs="$envs -e MONGODB_ROOT_PASSWORD=$ROOT_PASS"
+    fi
+    create_container $name $envs
+    CONTAINER_IP=$(get_container_ip $name)
+    test_connection $name
+    test_mongo $name
 }
 
 # Tests.
 
 USER="user" PASS="pass" DB="test" run_tests no_root
-USER=user1 PASS=pass1 ROOT_PASS=r00t run_tests root
+USER="user1" PASS="pass1" DB="test" ROOT_PASS=r00t run_tests root
