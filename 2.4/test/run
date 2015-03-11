@@ -38,7 +38,7 @@ get_container_ip() {
 }
 
 mongo_cmd() {
-    docker run --rm --entrypoint=scl $IMAGE_NAME enable mongodb24 -- mongo test --host $CONTAINER_IP -u "$USER" -p "$PASS" --eval "${@}"
+    docker run --rm --entrypoint=scl $IMAGE_NAME enable mongodb24 -- mongo "$DB" --host $CONTAINER_IP -u "$USER" -p "$PASS" --eval "${@}"
 }
 
 test_connection() { 
@@ -99,4 +99,4 @@ run_tests() {
 # Tests.
 
 USER="user" PASS="pass" DB="test_db" run_tests no_root
-USER="user1" PASS="pass1" DB="test_db" ROOT_PASS=r00t run_tests root
+USER="user1" PASS="pass1" DB="test_db" ROOT_PASS="r00t" run_tests root
