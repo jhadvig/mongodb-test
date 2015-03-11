@@ -32,11 +32,11 @@ function create_mongodb_users {
 
 	if [ "$MONGODB_ADMIN_PASSWORD" ]; then
 		echo "=> Creating an admin user with a ${MONGODB_ADMIN_PASSWORD} password in MongoDB"
-		mongo admin --eval "db.addUser({user: 'admin', pwd: '$MONGODB_ADMIN_PASSWORD', roles: [ 'userAdminAnyDatabase', 'dbAdminAnyDatabase' ]});"
+		mongo admin --eval "db.addUser({user: 'admin', pwd: '$MONGODB_ADMIN_PASSWORD', roles: [ 'dbAdminAnyDatabase' ]});"
 		unset MONGODB_ADMIN_PASSWORD
 	fi
 
-	mongo $mongo_db --eval "db.addUser({user: '${mongo_user}', pwd: '${mongo_pass}', roles: [ 'readWrite', 'dbAdmin' ]});"
+	mongo $mongo_db --eval "db.addUser({user: '${mongo_user}', pwd: '${mongo_pass}', roles: [ 'readWrite', 'dbAdmin', 'userAdmin' ]});"
 	mongo admin --eval "db.shutdownServer();"
 
 	sleep 3

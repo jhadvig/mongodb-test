@@ -66,6 +66,7 @@ test_connection() {
 
 test_mongo() {
     echo "  Testing MongoDB"
+    mongo_cmd "db.addUser({user: 'test_user', pwd: 'test_password', roles: ['readWrite']});"
     mongo_cmd "db.testData.insert({ x : 0 });"
     mongo_cmd "db.testData.insert({ y : 1 });"
     mongo_cmd "db.testData.find().forEach(printjson);"
@@ -97,5 +98,5 @@ run_tests() {
 
 # Tests.
 
-USER="user" PASS="pass" DB="test" run_tests no_root
-USER="user1" PASS="pass1" DB="test" ROOT_PASS=r00t run_tests root
+USER="user" PASS="pass" DB="test_db" run_tests no_root
+USER="user1" PASS="pass1" DB="test_db" ROOT_PASS=r00t run_tests root

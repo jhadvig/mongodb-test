@@ -24,8 +24,9 @@ RUN yum install -y yum-utils && \
     yum install -y --setopt=tsflags=nodocs v8314 mongodb24-mongodb mongodb24 && \
     yum clean all
 
-COPY contrib /opt/openshift/
-ENV PATH /opt/openshift/bin:$PATH
+COPY contrib/etc/ /opt/openshift/etc
+COPY contrib/bin/ /usr/local/bin
+
 WORKDIR /opt/openshift
 
 VOLUME ["/var/lib/mongodb/"]
