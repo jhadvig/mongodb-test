@@ -8,8 +8,8 @@ function usage {
 	echo "You must specify following environment variables:"
 	echo "  \$MONGODB_USER"
 	echo "  \$MONGODB_PASSWORD"
-	#echo "  \$MONGODB_DB"
-	echo "  \$MONGODB_ADMIN_PASSWORD"
+	echo "  \$MONGODB_DB - optional"
+	echo "  \$MONGODB_ADMIN_PASSWORD - optional"
 	exit 1
 }
 
@@ -39,12 +39,12 @@ function create_mongodb_users {
 	mongo $mongo_db --eval "db.addUser({user: '${mongo_user}', pwd: '${mongo_pass}', roles: [ 'readWrite', 'dbAdmin', 'userAdmin' ]});"
 	mongo admin --eval "db.shutdownServer();"
 
+	# Sleep for couple of seconds before the server daemon is started.
 	sleep 3
 }
 
 test -z "$MONGODB_USER" && usage
 test -z "$MONGODB_PASSWORD" && usage
-
 
 if [ "$MONGODB_USER" -o "$MONGODB_PASSWORD" -o "$MONGODB_ADMIN_PASSWORD" ]; then
 	create_mongodb_users
