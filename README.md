@@ -76,16 +76,21 @@ command:
 docker run -d -e MONGODB_USER=<user> -e MONGODB_PASSWORD=<password> -e MONGODB_DATABASE=<database> -v /home/user/database:/var/lib/mongodb openshift/mongodb-24-centos7
 ```
 
-If the database directory is not initialized, the entrypoint script will
-first run `mysql_install_db` and setup necessary database users and
-passwords. After the database is initialized, or if it was already
-present, `mysqld` is executed and will run as PID 1. You can stop the
-detached container by running `docker stop <CONTAINER ID>`.
+If you are initializing the database and it's the first time you are using the
+specified shared volume, the database will be created, together with database
+administrator user and also MongoDB root user if `MONGODB_ADMIN_PASSWORD`
+environment variable is specified. after that the MongoDB daemon will be
+started
+If you are re-attaching the volume to another container the creation of the
+database admin user and the root user will be skipped and only the mongodb
+daemon will be started
+
 
 ### MongoDB root user
-There is root user set by default. You can set it by setting
-`MONGODB_ROOT_PASSWORD` environment variable when initializing your
-database.
+The root user in not set by default. You can create him by setting 
+`MONGODB_ROOT_PASSWORD` environment variable, in which case the root 
+user name will be set to `admin`. This process is done upon initializing 
+the database.
 
 
 ## Software Collections
@@ -95,7 +100,7 @@ running container (for debugging for example), you need to prefix it
 with `scl enable` command. Some examples:
 
 ```console
-# Running mongodbl commands inside the container
+# Running mongodb commands inside the container
 scl enable mongodb24 -- mongo <db_name> -u <username> -p <password>
 
 # Executing a command inside a running container from host

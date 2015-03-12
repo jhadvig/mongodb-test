@@ -8,7 +8,7 @@ function usage {
 	echo "You must specify following environment variables:"
 	echo "  \$MONGODB_USER"
 	echo "  \$MONGODB_PASSWORD"
-	echo "  \$MONGODB_DB - optional"
+	echo "  \$MONGODB_DB - optional (default database - 'production')"
 	echo "  \$MONGODB_ADMIN_PASSWORD - optional"
 	exit 1
 }
@@ -28,7 +28,6 @@ function create_mongodb_users {
 	mongo_user="$MONGODB_USER" ; unset MONGODB_USER
 	mongo_pass="$MONGODB_PASSWORD" ; unset MONGODB_PASSWORD
 	mongo_db=${MONGODB_DATABASE:-"production"} ; unset MONGODB_DATABASE
-
 
 	if [ "$MONGODB_ADMIN_PASSWORD" ]; then
 		echo "=> Creating an admin user with a ${MONGODB_ADMIN_PASSWORD} password in MongoDB"
