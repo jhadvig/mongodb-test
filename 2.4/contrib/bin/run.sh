@@ -39,6 +39,9 @@ function create_mongodb_users {
 	mongo $mongo_db --eval "db.addUser({user: '${mongo_user}', pwd: '${mongo_pass}', roles: [ 'readWrite', 'dbAdmin', 'userAdmin' ]});"
 	mongo admin --eval "db.shutdownServer();"
 
+	# Create a empty file which indicates that the database users were created.
+	touch /var/lib/mongodb/.mongodb_users_created
+
 	# Sleep for couple of seconds before the server daemon is started.
 	sleep 3
 }
@@ -46,7 +49,7 @@ function create_mongodb_users {
 test -z "$MONGODB_USER" && usage
 test -z "$MONGODB_PASSWORD" && usage
 
-if [ "$MONGODB_USER" -o "$MONGODB_PASSWORD" -o "$MONGODB_ADMIN_PASSWORD" ]; then
+if [ ! -f /var/lib/mongodb/.mongodb_users_created ]; then
 	create_mongodb_users
 fi
 
